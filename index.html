@@ -1,0 +1,287 @@
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Contatos</title>
+
+    <style>
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 1.9em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        input[type="text"], input[type="tel"], input[type="file"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            color: #333;
+            background-color: #fafafa;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        label[for="photo"] {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: #ececec;
+            color: #333;
+            border: 1px solid #ccc;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        label[for="photo"]:hover {
+            background-color: #d9d9d9;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: #4a90e2;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        button:hover {
+            background-color: #1961b4;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+
+        td {
+            background-color: #fff;
+        }
+
+        img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Ajuste para as mensagens de erro */
+        .error {
+            color: red;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        /* Estilos para os botões de editar e excluir */
+        .action-buttons button {
+            
+            width: 60px;
+            padding:5px;
+            margin: 2px;
+            font-size: 0.9em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .edit-btn {
+            background-color: #ffc107;
+            color: rgb(6, 0, 0);
+        }
+
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Cadastro de Contatos</h2>
+
+    <form id="contactForm">
+        <input type="text" id="name" placeholder="Nome" required>
+        <input type="tel" id="phone" placeholder="Telefone (DDD)XXXXX-XXXX" maxlength="15" required>
+        
+        <label for="photo">Selecionar Foto (Opcional)</label>
+        <input type="file" id="photo" accept="image/*">
+        
+        <button type="submit">Cadastrar</button>
+
+        <!-- Mensagem de erro para o telefone -->
+        <div id="errorMessage" class="error">Número de telefone inválido!</div>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Foto</th>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="contactTable">
+            <!-- As linhas de contatos serão adicionadas aqui -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    let currentEditRow = null;
+
+    document.getElementById('phone').addEventListener('input', function (e) {
+        let input = e.target.value;
+        input = input.replace(/\D/g, '');
+        if (input.length > 0) {
+            input = '(' + input.substring(0, 2) + ') ' + input.substring(2, 7) + '-' + input.substring(7, 11);
+        }
+        e.target.value = input;
+    });
+
+    document.getElementById('contactForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+        const photo = document.getElementById('photo').files[0];
+        const phoneRegex = /^\(\d{2}\) \d{4,5}-\d{4}$/;
+        
+        // Verificar se o número de telefone é válido
+        if (!phoneRegex.test(phone)) {
+            document.getElementById('errorMessage').style.display = 'block';
+            return;
+        } else {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        let imgSrc = '';
+        if (photo) {
+            imgSrc = URL.createObjectURL(photo);
+        } else {
+            imgSrc = 'https://via.placeholder.com/50/CCCCCC/777777/?text=Sem+Foto'; // Novo link da imagem padrão
+        }
+
+        if (currentEditRow) {
+            // Editar contato existente
+            currentEditRow.querySelector('td:nth-child(2)').textContent = name;
+            currentEditRow.querySelector('td:nth-child(3)').textContent = phone;
+            currentEditRow.querySelector('img').src = imgSrc;
+            currentEditRow = null; // Resetar o modo de edição
+        } else {
+            // Criar novo contato
+            const newRow = document.createElement('tr');
+
+            newRow.innerHTML = `
+    <td><img src="${imgSrc}" alt="Foto do contato"></td>
+    <td>${name}</td>
+    <td>${phone}</td>
+    <td class="action-buttons">
+        <button class="edit-btn">Editar</button>
+        <button class="delete-btn">Excluir</button>
+    </td>`;
+
+            
+            document.getElementById('contactTable').appendChild(newRow);
+
+            // Adicionar eventos de editar e excluir
+            newRow.querySelector('.edit-btn').addEventListener('click', function() {
+                editContact(newRow);
+            });
+
+            newRow.querySelector('.delete-btn').addEventListener('click', function() {
+                deleteContact(newRow);
+            });
+        }
+
+        document.getElementById('contactForm').reset();
+    });
+
+    function editContact(row) {
+        const name = row.querySelector('td:nth-child(2)').textContent;
+        const phone = row.querySelector('td:nth-child(3)').textContent;
+        const imgSrc = row.querySelector('img').src;
+
+        document.getElementById('name').value = name;
+        document.getElementById('phone').value = phone;
+
+        currentEditRow = row; // Definir a linha sendo editada
+    }
+
+    function deleteContact(row) {
+        document.getElementById('contactTable').removeChild(row);
+    }
+</script>
+
+</body>
+</html>
